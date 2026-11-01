@@ -12,7 +12,8 @@ Behaviour, stored data and the site hand-off contract are defined by the userscr
 - `src/game.js`, `src/panel.js`, `src/game-main.js` — game mode: collection throttled by the tab's `sessionStorage`, the menu entry with the battery icon, the panel.
 - `src/i18n.js`, `src/site-main.js` — the interface strings and the site hand-off (`localStorage['pfg_companion_pending_export']` + the `pfg-companion:sync` event).
 - `manifests/chrome.json`, `manifests/firefox.json` — the only per-browser difference.
-- `scripts/check.js`, `scripts/build.js`, `scripts/gen-icon.js` — syntax check, store packages (`dist/` + zips), placeholder icons.
+- `scripts/check.js`, `scripts/build.js`, `scripts/gen-icon.js` — syntax check, store packages (`dist/` + zips), and the battery-glyph fallback icons.
+- `icons/` — the PfG site favicon: `icon-128.png` is `favicon64.png` upscaled 2× with a bicubic (Catmull-Rom, premultiplied-alpha) resampler, `icon-48.png` an area-average downscale of the original.
 - `test/extension.test.js` — jsdom tests with a stubbed `chrome.storage`, ported from the userscript repository.
 
 Minimum browser versions: Chrome 111, Firefox 128 (both the floor for static `"world": "MAIN"` content scripts; in late 2026 these cover every supported browser).
@@ -32,7 +33,7 @@ Then load `dist/chrome` unpacked on `chrome://extensions`, or `dist/firefox/mani
 
 - `npm run check` — syntax-check the sources.
 - `npm test` — the jsdom suite.
-- `npm run icon` — regenerate the placeholder icons.
+- `npm run icon` — regenerate the battery-glyph fallback icons (the committed ones come from the site's favicon, see `icons/` above).
 - To see debug logs on a game page, set `localStorage['pfg-companion:debug'] = '1'` there and reload (the userscript manager's `DEBUG` editor is not available to an extension).
 
 ## Releasing
