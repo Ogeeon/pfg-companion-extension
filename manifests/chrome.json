@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "PfG Companion",
+  "version": "0.1.0",
+  "description": "Collect OGame account data while you play and make it available to ProxyForGame.",
+  "minimum_chrome_version": "111",
+  "icons": {
+    "128": "icons/icon-128.png"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://*.ogame.gameforge.com/game/index.php*"],
+      "js": ["src/main-world.js"],
+      "world": "MAIN",
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["https://*.ogame.gameforge.com/game/index.php*"],
+      "js": ["src/i18n.js", "src/core.js", "src/bridge.js", "src/game.js", "src/panel.js", "src/game-main.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://proxyforgame.com/*", "https://www.proxyforgame.com/*"],
+      "js": ["src/i18n.js", "src/core.js", "src/site-main.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

@@ -4,30 +4,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working in this
 
 ## What this is
 
-The browser-extension twin of the PfG Companion userscript (Chrome and Firefox, one Manifest V3 codebase): it collects an OGame account snapshot while the player browses the game and hands it to the ProxyForGame (PfG) site. The behaviour, the stored-data format and the site hand-off contract are owned by the userscript repository (`D:\Programming\JS\pfg-companion-script`); this repo must not drift from them. When a behavioural question arises, the userscript source is the source of truth.
+The browser-extension twin of the PfG Companion userscript (Chrome and Firefox, one Manifest V3 codebase): it collects an OGame account snapshot while the player browses the game and hands it to the ProxyForGame (PfG) site. The behaviour, the stored-data format and the site hand-off contract are owned by the userscript repository (`D:\Programming\JS\pfg-companion-script`); this repo must not drift from them. When a behavioural question arises, the userscript source is the source of truth — most functions here are verbatim ports.
 
 ## Commands
 
 - `npm run check` — syntax-check every file in `src/` (`node --check` via `scripts/check.js`).
+- `npm test` — jsdom suite in `test/`: runs the content scripts in manifest order on a minimal game page with a stubbed `chrome.storage` (in-memory, clone-on-read/write, `onChanged`) and stubbed `fetch`, then asserts on storage.
 - `npm run build` — assemble `dist/chrome` and `dist/firefox` (each: `src/` + `icons/` + its manifest from `manifests/<browser>.json`) and pack store zips.
-- `npm test` — jsdom tests for the shared core (wired when the code lands).
-- Manual testing: load `dist/chrome` unpacked on `chrome://extensions`, `dist/firefox/manifest.json` via `about:debugging`.
+- `npm run icon` — regenerate the placeholder icons (`scripts/gen-icon.js`, a dependency-free PNG writer); replace with real artwork before the first store submission.
+- Manual testing: load `dist/chrome` unpacked on `chrome://extensions`, `dist/firefox/manifest.json` via `about:debugging`. Debug logs: `localStorage['pfg-companion:debug'] = '1'` on a game page, then reload.
 
 ## Architecture
 
-- No bundler, no runtime dependencies: content scripts are an ordered list of plain files, like the userscript is one plain file.
-- Two content-script entries by host: game mode on `*.ogame.gameforge.com`, site mode on `proxyforgame.com`.
-- The logic runs in the isolated world, where `chrome.storage` is available. `chrome.storage.local` replaces GM storage under the same key `pfg-companion:snapshots:v1`; snapshots are loaded once into memory at start (GM storage was synchronous, extension storage is not) and written through on save. `GM_addValueChangeListener` becomes `chrome.storage.onChanged` in site mode.
-- The two `unsafeWindow` spots of the userscript (`resourcesBar` in `readResourceBar()`, `changeTooltip()` in `setIconTooltip()`) are served by a tiny MAIN-world bridge injected as a `<script src>` from `web_accessible_resources` and talking over CustomEvents.
+- No bundler, no runtime dependencies: content scripts are an ordered list of plain files sharing one global lexical scope, like the userscript is one plain file. Top-level `const`s must stay unique across files; `npm run check` does not catch collisions, so mind new names.
+- Three content-script entries: `src/main-world.js` on OGame with `"world": "MAIN"` at `document_start`; the game scripts on OGame at `document_idle`; the site scripts on proxyforgame.com at `document_idle`. Minimum versions Chrome 111 / Firefox 128 (the floor for static `world: "MAIN"`).
+- The two `unsafeWindow` spots of the userscript became the bridge: `src/bridge.js` (isolated world) sends `pfg-companion-bridge` CustomEvents with a requestId; `src/main-world.js` answers `resourcesBar` amounts and OGame's `changeTooltip()` via `pfg-companion-bridge-reply`. Timeouts (200 ms read / 500 ms tooltip) degrade to the userscript's own fallbacks (bar text, plain `title`), so a missing MAIN world never breaks collection.
+- `chrome.storage.local` replaces GM storage under the same key `pfg-companion:snapshots:v1`: `initSnapshots()` loads it once into a cache (GM storage was synchronous, extension storage is not) and every save writes through. `chrome.storage.onChanged` keeps the cache fresh across tabs and, in site mode, re-runs the hand-off (the userscript's `GM_addValueChangeListener`).
 - No background service worker: everything happens in content scripts.
-- `GM_addStyle` becomes a plain `<style>` element; the OGame menu entry, panel, i18n dictionary and all UI strings are ported verbatim.
+- The userscript and the extension never collect together: game-main/site-main stand down when `document.documentElement.dataset.pfgCompanion` is already set and set it to `'extension'` themselves (the userscript sets `'userscript'` from 0.3.1). Without the marker both run once — accepted.
+- `GM_addStyle` became a plain `<style>` element; the OGame menu entry, panel and all UI strings are ported verbatim.
 
 ## Contracts (shared with the userscript — must not drift)
 
-- GM/storage key `pfg-companion:snapshots:v1`, site localStorage key `pfg_companion_pending_export`, site event `pfg-companion:sync`.
+- Storage key `pfg-companion:snapshots:v1`, site localStorage key `pfg_companion_pending_export`, site event `pfg-companion:sync`.
 - The export stays compatible with the account-export format parsed by PfG's `profiles-core.js` (schema version 2); companion-specific data goes only under the optional `pfgCompanion` block.
 - Behavioural constraints: never change the selected planet, never open game pages or run background polling; `accountInfo` is requested once per game session and only re-requested by the panel's Refresh; production factors are read only from the Resource Settings page the player opened.
 
 ## Conventions
 
-Inherited from the userscript repository: commit messages in English; source files use CRLF line endings; `DEBUG = false` in commits; every new UI string goes into the `I18N` dictionary in every language (a test checks the key sets match); the README documents player-visible behaviour and is updated together with the code.
+Inherited from the userscript repository: commit messages in English; source files use CRLF line endings; debug logging off by default (the localStorage flag above is the player-facing switch); every new UI string goes into the `I18N` dictionary in every language (a test checks the key sets match); the README documents player-visible behaviour and is updated together with the code.

@@ -2,20 +2,24 @@
 
 PfG Companion as a browser extension: Chrome and Firefox, one Manifest V3 codebase. It implements the same functionality as the [PfG Companion userscript](https://proxyforgame.com/companion/pfg-companion.user.js) — collects an OGame account snapshot while the player browses the game, keeps it in extension storage, and hands it to the ProxyForGame site — for players who do not use a userscript manager.
 
-Status: bootstrap. The port of the userscript code is in progress; behaviour, stored data and the site hand-off contract are defined by the userscript repository and must not drift from it.
+Behaviour, stored data and the site hand-off contract are defined by the userscript repository and must not drift from it. If both the userscript and the extension are installed, whoever starts first marks the page (`data-pfg-companion` on `<html>`) and the other stands down entirely, so the account is never requested twice.
 
 ## Structure
 
-- `src/` — the code: a shared core plus per-mode entry points, loaded as ordered content scripts (no bundler, no dependencies at runtime).
+- `src/main-world.js` — runs in the page's MAIN world (manifest `content_scripts` entry with `"world": "MAIN"`): reads OGame's own JS (`resourcesBar`, `changeTooltip()`), unreachable from the isolated world.
+- `src/bridge.js` — the isolated-world side of that bridge: request/reply over CustomEvents, with a timeout after which the caller falls back to its next strategy.
+- `src/core.js` — contract keys, the `chrome.storage.local` adapter (an in-memory cache with write-through, kept fresh by `chrome.storage.onChanged`) and the snapshot build/merge logic.
+- `src/game.js`, `src/panel.js`, `src/game-main.js` — game mode: collection throttled by the tab's `sessionStorage`, the menu entry with the battery icon, the panel.
+- `src/i18n.js`, `src/site-main.js` — the interface strings and the site hand-off (`localStorage['pfg_companion_pending_export']` + the `pfg-companion:sync` event).
 - `manifests/chrome.json`, `manifests/firefox.json` — the only per-browser difference.
-- `icons/` — extension icons.
-- `scripts/check.js` — syntax-checks every file in `src/`.
-- `scripts/build.js` — assembles `dist/chrome` and `dist/firefox` and packs each into a store zip.
-- `test/` — jsdom tests for the shared core.
+- `scripts/check.js`, `scripts/build.js`, `scripts/gen-icon.js` — syntax check, store packages (`dist/` + zips), placeholder icons.
+- `test/extension.test.js` — jsdom tests with a stubbed `chrome.storage`, ported from the userscript repository.
+
+Minimum browser versions: Chrome 111, Firefox 128 (both the floor for static `"world": "MAIN"` content scripts; in late 2026 these cover every supported browser).
 
 ## Contract keys shared with the userscript
 
-`pfg-companion:snapshots:v1` (storage), `pfg_companion_pending_export` (site localStorage), `pfg-companion:sync` (site event). Changing them breaks the site hand-off; see the userscript repository's README.
+`pfg-companion:snapshots:v1` (extension storage), `pfg_companion_pending_export` (site localStorage), `pfg-companion:sync` (site event). Changing them breaks the site hand-off; see the userscript repository's README.
 
 ## Local development
 
@@ -24,7 +28,12 @@ npm install
 npm run build
 ```
 
-Then load `dist/chrome` unpacked on `chrome://extensions`, or `dist/firefox/manifest.json` via `about:debugging` → This Firefox → Load Temporary Add-on. `npm run check` syntax-checks the sources.
+Then load `dist/chrome` unpacked on `chrome://extensions`, or `dist/firefox/manifest.json` via `about:debugging` → This Firefox → Load Temporary Add-on.
+
+- `npm run check` — syntax-check the sources.
+- `npm test` — the jsdom suite.
+- `npm run icon` — regenerate the placeholder icons.
+- To see debug logs on a game page, set `localStorage['pfg-companion:debug'] = '1'` there and reload (the userscript manager's `DEBUG` editor is not available to an extension).
 
 ## Releasing
 

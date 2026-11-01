@@ -5,7 +5,9 @@
   "description": "PfG Companion as a Chrome and Firefox extension: collects an OGame account snapshot while the player browses the game and hands it to the ProxyForGame site.",
   "scripts": {
     "check": "node scripts/check.js",
-    "build": "node scripts/build.js"
+    "test": "node --test \"test/**/*.test.js\"",
+    "build": "node scripts/build.js",
+    "icon": "node scripts/gen-icon.js"
   },
   "license": "MIT",
   "devDependencies": {
