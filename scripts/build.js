@@ -38,7 +38,8 @@ for (const browser of browsers) {
   fs.copyFileSync(path.join(root, 'manifests', `${browser}.json`), path.join(target, 'manifest.json'));
   const zip = path.join(dist, `pfg-companion-${browser}-${version}.zip`);
   fs.rmSync(zip, { force: true });
-  const packed = spawnSync('tar', ['-a', '-c', '-f', zip, '-C', target, '.'], { stdio: 'inherit' });
+  // Relative paths and cwd: bsdtar reads an absolute Windows path such as D:\... as a host name.
+  const packed = spawnSync('tar', ['-a', '-c', '-f', path.basename(zip), '-C', browser, '.'], { cwd: dist, stdio: 'inherit' });
   if (packed.status !== 0) {
     console.error(`Failed to pack ${zip}.`);
     process.exit(1);
