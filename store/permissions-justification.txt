@@ -1,0 +1,36 @@
+PERMISSIONS AND PRIVACY TAB ANSWERS (Chrome Web Store Developer Dashboard)
+
+SINGLE PURPOSE
+Collects the player's OGame account data while they play and makes it available to the ProxyForGame website, which uses it for the player's account.
+
+PERMISSION: storage
+Justification:
+The extension saves the collected account snapshot (player and universe identifiers, planets and moons, resources, production settings, active boosters) in chrome.storage.local, so the data persists between browser sessions and can be handed to proxyforgame.com. The extension does not sync this data anywhere; it stays in the browser.
+
+HOST ACCESS (content scripts, not a permission request)
+1. https://*.ogame.gameforge.com/game/index.php*
+   Justification: the content scripts read the game page to build the account snapshot (player ID, planets, resource bar values), request the player's account data from the game's own server once per session and when the player presses Refresh, and add the PfG Companion entry and panel to the OGame menu. They do not run on any other OGame page or domain.
+
+2. https://proxyforgame.com/* and https://www.proxyforgame.com/*
+   Justification: the content script passes the stored snapshot to the ProxyForGame website through the page's localStorage and a page event, and re-does this when the stored data changes. It does not read any other content on the site.
+
+MAIN-WORLD SCRIPT (src/main-world.js, "world": "MAIN")
+Justification: runs only on the OGame game page and only reads two of the game's own page functions (the resource bar values and changeTooltip()) so that the snapshot and the tooltip match the game exactly. It makes no network requests and does not access storage. If it does not run, the extension uses fallback values.
+
+REMOTE CODE
+No. The extension does not load or execute any remote code. All scripts are in the package.
+
+DATA COLLECTION DISCLOSURE (Privacy practices tab)
+Collected:
+- Website content: yes (game page content, planets, resources, production settings).
+- Personally identifiable information: tick conservatively, because the player ID and universe identify the player's account.
+Not collected: health, financial, authentication information, personal communications, location, web history, user activity.
+
+Certifications (tick all three):
+- I do not sell or transfer user data to third parties, apart from the approved use cases.
+- I do not use or transfer user data for purposes unrelated to the item's single purpose.
+- I do not use or transfer user data to determine creditworthiness or for lending purposes.
+
+PRIVACY POLICY URL
+https://github.com/Ogeeon/pfg-companion-extension/blob/main/PRIVACY.md
+(The file must be committed and pushed to the main branch before submitting. Check that the page opens without signing in.)

@@ -5,6 +5,7 @@
   "description": "Collect OGame account data while you play and make it available to ProxyForGame.",
   "minimum_chrome_version": "111",
   "icons": {
+    "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
   },
   "permissions": [
@@ -23,7 +24,7 @@
       "run_at": "document_idle"
     },
     {
-      "matches": ["https://proxyforgame.com/*", "https://www.proxyforgame.com/*", "http://pfg.wmp/*"],
+      "matches": ["https://proxyforgame.com/*", "https://www.proxyforgame.com/*"],
       "js": ["src/i18n.js", "src/core.js", "src/site-main.js"],
       "run_at": "document_idle"
     }

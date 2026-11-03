@@ -1,0 +1,33 @@
+NAME (max 45 characters)
+PfG Companion
+
+SHORT DESCRIPTION (manifest "description", max 132 characters; already in manifests/chrome.json)
+Collect OGame account data while you play and make it available to ProxyForGame.
+
+FULL DESCRIPTION (Chrome Web Store, max 16000 characters)
+
+PfG Companion collects your OGame account data while you play and makes it available to ProxyForGame (proxyforgame.com), so you do not have to copy anything by hand.
+
+HOW IT WORKS
+- Play OGame as usual. While you browse game pages, the extension reads your account information, your planets and moons (names, coordinates, resources, fields, temperatures), your production settings and active production boosters.
+- Open the PfG Companion entry in the OGame menu to see what has been collected and when. The panel has Refresh and Clear data buttons.
+- Open proxyforgame.com in the same browser. It picks up the stored data automatically.
+- Production percentages are read from the Resource Settings page. Open it on each planet whose percentages you want included.
+
+PRIVACY
+- All data stays in the extension's local storage in your browser. The extension sends nothing to its developer and uses no analytics or advertising.
+- It does not read passwords, cookies or messages, and it does not keep a browsing history.
+- The extension requests data only from OGame's own game server, the same requests the game itself makes. Account information is requested once per game session.
+- Clear data in the panel removes the stored data for the current account. Removing the extension deletes all of its stored data.
+- Full privacy policy: https://github.com/Ogeeon/pfg-companion-extension/blob/main/PRIVACY.md
+
+COMPATIBILITY
+- Requires Chrome 111 or later.
+- If the PfG Companion userscript is already active on the page, the extension stands down so the account is not requested twice.
+
+SUPPORT
+Questions and bug reports: https://github.com/Ogeeon/pfg-companion-extension/issues
+
+
+LANGUAGE NOTE (for the developer, not part of the listing)
+The interface strings (menu, panel, messages) are localized into 12 languages, English included. The store listing itself is only in English here; add localized descriptions in the dashboard if you want them.
