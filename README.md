@@ -4,6 +4,10 @@ PfG Companion as a browser extension: Chrome and Firefox, one Manifest V3 codeba
 
 Behaviour, stored data and the site hand-off contract are defined by the userscript repository and must not drift from it. If both the userscript and the extension are installed, whoever starts first marks the page (`data-pfg-companion` on `<html>`) and the other stands down entirely, so the account is never requested twice.
 
+## Privacy
+
+What the extension collects, where it is stored and what leaves the browser is described in [PRIVACY.md](PRIVACY.md).
+
 ## Structure
 
 - `src/main-world.js` — runs in the page's MAIN world (manifest `content_scripts` entry with `"world": "MAIN"`): reads OGame's own JS (`resourcesBar`, `changeTooltip()`), unreachable from the isolated world.

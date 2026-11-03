@@ -89,9 +89,9 @@ function stripDetails(value) {
 
 /** @param {string} tooltip */
 function tooltipBody(tooltip) {
-  const element = document.createElement('div');
-  element.innerHTML = tooltip;
-  return element.textContent || '';
+  // A DOMParser document is inert: scripts do not run and images are not loaded, unlike innerHTML on a live element.
+  const doc = new DOMParser().parseFromString(tooltip, 'text/html');
+  return doc.body.textContent || '';
 }
 
 /** @param {string} tooltip */

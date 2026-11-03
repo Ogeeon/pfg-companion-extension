@@ -125,9 +125,11 @@ function showPanel(entry) {
     ? `<p>${escapeHtml(t('missingProduction'))}</p><ul>${status.missingProduction.map((planet) => `<li>${escapeHtml(planet.name || planet.id)} [${escapeHtml(planet.coords || '')}]</li>`).join('')}</ul>`
     : '';
   const error = collectionError ? `<p class="pfg-muted">${escapeHtml(t('lastError', { message: collectionError.message, date: formatDate(collectionError.at) }))}</p>` : '';
-  panel.innerHTML = `<button type="button" aria-label="${escapeHtml(t('close'))}">×</button><h2>ProxyForGame companion</h2><p>${escapeHtml(panelText(exportData, status))}</p><p class="pfg-muted">${escapeHtml(t('lastCollection', { date: collectedAt }))}</p>${missing}${error}<div class="pfg-actions"><button type="button" id="pfg-refresh">${escapeHtml(t('refresh'))}</button><button type="button" id="pfg-clear">${escapeHtml(t('clear'))}</button></div>`
+  const markup = `<button type="button" aria-label="${escapeHtml(t('close'))}">×</button><h2>ProxyForGame companion</h2><p>${escapeHtml(panelText(exportData, status))}</p><p class="pfg-muted">${escapeHtml(t('lastCollection', { date: collectedAt }))}</p>${missing}${error}<div class="pfg-actions"><button type="button" id="pfg-refresh">${escapeHtml(t('refresh'))}</button><button type="button" id="pfg-clear">${escapeHtml(t('clear'))}</button></div>`
     + `<label class="pfg-minified"><input type="checkbox" id="pfg-minified"${exportMinified ? ' checked' : ''}>${escapeHtml(t('minified'))}</label>`
     + `<div class="pfg-actions"><button type="button" id="pfg-copy"${hasExportData() ? '' : ' disabled'}>${escapeHtml(t('copy'))}</button><button type="button" id="pfg-save"${hasExportData() ? '' : ' disabled'}>${escapeHtml(t('saveFile'))}</button></div>`;
+  // Parsed rather than assigned to innerHTML: every dynamic value above is escaped, and the parsed nodes are inert.
+  panel.replaceChildren(...new DOMParser().parseFromString(markup, 'text/html').body.childNodes);
   panel.querySelector('button:not([id])')?.addEventListener('click', () => panel.classList.remove('pfg-open'));
   panel.querySelector('#pfg-refresh')?.addEventListener('click', () => {
     debug('refresh clicked, forcing collection');
@@ -205,7 +207,7 @@ function installGameUi() {
   const entry = document.createElement('li');
   entry.id = 'pfg-companion-menu';
   const status = collectionStatus(activeEntry()?.export);
-  entry.innerHTML = `
+  const markup = `
       <span class="menu_icon">
         <a id="pfg-companion-icon" class="tooltipRight js_hideTipOnMobile" href="#" target="_self" style="display:block;line-height:0;text-decoration:none;">
           <img class="pfg-level-icon" src="${LEVEL_ICONS[status.level] || LEVEL_ICONS[1]}" alt="${escapeHtml(t('iconAlt'))}" width="27" height="27">
@@ -213,6 +215,7 @@ function installGameUi() {
       </span>
       <a class="menubutton" href="#" id="pfg-companion-menu-btn"><span class="textlabel">PfG Companion</span></a>
     `;
+  entry.replaceChildren(...new DOMParser().parseFromString(markup, 'text/html').body.childNodes);
   const openPanel = (event) => {
     event.preventDefault();
     const panel = document.getElementById('pfg-companion-panel');
