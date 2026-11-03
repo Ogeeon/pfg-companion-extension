@@ -23,7 +23,7 @@
       "run_at": "document_idle"
     },
     {
-      "matches": ["https://proxyforgame.com/*", "https://www.proxyforgame.com/*"],
+      "matches": ["https://proxyforgame.com/*", "https://www.proxyforgame.com/*", "http://pfg.wmp/*"],
       "js": ["src/i18n.js", "src/core.js", "src/site-main.js"],
       "run_at": "document_idle"
     }

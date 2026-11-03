@@ -136,7 +136,7 @@ async function runPage(html, { url = GAME_URL, script = GAME_SCRIPT, failFetch =
   w.structuredClone = structuredClone;
   w.console = { debug: (...args) => debugLines.push(args), log: console.log, error: console.error };
   if (failFetch) w.fetch = async () => { fetches++; return { ok: false, status: 500 }; };
-  else w.fetch = async (requestUrl) => { fetches++; return { ok: true, json: async () => fakeResponse(requestUrl) }; };
+  else w.fetch = async (requestUrl) => { fetches++; return { ok: true, text: async () => JSON.stringify(fakeResponse(requestUrl)) }; };
   Object.defineProperty(w, 'sessionStorage', { value: tab, configurable: true });
   setup?.(w);
   const writesBefore = writes;
@@ -215,7 +215,7 @@ const speciesWithoutData = {
     w.fetch = async (url) => {
       if (!String(url).includes('action=speciesBonuses')) return fetchWithData(url);
       fetches++;
-      return { ok: true, json: async () => ({ components: [] }) };
+      return { ok: true, text: async () => JSON.stringify({ components: [] }) };
     };
   },
 };
@@ -559,6 +559,27 @@ test('site mode hands off again when the snapshots change', async () => {
   });
   assert.strictEqual(events.length, 2, 'the storage change re-runs the hand-off');
   assert.strictEqual(events[1].exports.length, 2);
+});
+
+test('site mode clones the sync event detail into the page where cloneInto exists (Firefox)', async () => {
+  await runPage(gamePage());
+  const cloned = [];
+  let sync = null;
+  await runPage(sitePage(), {
+    url: SITE_URL,
+    script: SITE_SCRIPT,
+    setup(w) {
+      w.cloneInto = (value, target) => {
+        assert.strictEqual(target, w);
+        const copy = structuredClone(value);
+        cloned.push(copy);
+        return copy;
+      };
+      w.document.addEventListener('pfg-companion:sync', (event) => { sync = event.detail; });
+    },
+  });
+  assert.strictEqual(cloned.length, 1);
+  assert.strictEqual(sync, cloned[0], 'the event carries the clone, not the isolated-world object');
 });
 
 test('site mode stands down when the userscript has marked the page', async () => {

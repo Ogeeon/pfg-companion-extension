@@ -31,6 +31,9 @@ function bridgeCall(request, timeoutMs = BRIDGE_TIMEOUT_MS) {
       clearTimeout(timer);
       resolve(result);
     });
-    window.dispatchEvent(new CustomEvent(BRIDGE_REQUEST_EVENT, { detail: { ...request, requestId } }));
+    const detail = { ...request, requestId };
+    // Firefox: a detail object of the isolated world is an Xray wrapper, which the page's listener cannot read (Permission denied); cloneInto copies it into the page. Chrome has no cloneInto and passes the object as is.
+    const payload = typeof cloneInto === 'function' ? cloneInto(detail, window) : detail;
+    window.dispatchEvent(new CustomEvent(BRIDGE_REQUEST_EVENT, { detail: payload }));
   });
 }

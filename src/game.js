@@ -14,7 +14,9 @@ async function fetchJson(url) {
     headers: { 'X-Requested-With': 'XMLHttpRequest' },
   });
   if (!response.ok) throw new Error(`Request failed with HTTP ${response.status}`);
-  return response.json();
+  // Parsed from text: in Firefox response.json() can hand back an Xray wrapper of the page's object, and later
+  // code writes into this data (mergeBodyDetails), which that wrapper rejects. JSON.parse yields a native object.
+  return JSON.parse(await response.text());
 }
 
 function currentPagePlayerId() {

@@ -333,5 +333,8 @@ function handOffToSite() {
   if (!exports.length) return;
   const payload = { version: 1, exports };
   localStorage.setItem(PENDING_EXPORT_KEY, JSON.stringify(payload));
-  document.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: payload }));
+  // Firefox: the page cannot read a detail object of the isolated world (an Xray wrapper: "Permission denied"),
+  // so cloneInto copies it into the page, as in bridgeCall(). Chrome has no cloneInto and passes the object as is.
+  const detail = typeof cloneInto === 'function' ? cloneInto(payload, window) : payload;
+  document.dispatchEvent(new CustomEvent(EVENT_NAME, { detail }));
 }
