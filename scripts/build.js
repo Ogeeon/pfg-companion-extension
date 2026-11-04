@@ -38,8 +38,13 @@ for (const browser of browsers) {
   fs.copyFileSync(path.join(root, 'manifests', `${browser}.json`), path.join(target, 'manifest.json'));
   const zip = path.join(dist, `pfg-companion-${browser}-${version}.zip`);
   fs.rmSync(zip, { force: true });
-  // Relative paths and cwd: bsdtar reads an absolute Windows path such as D:\... as a host name.
-  const packed = spawnSync('tar', ['-a', '-c', '-f', path.basename(zip), '-C', browser, '.'], { cwd: dist, stdio: 'inherit' });
+  // Packed by Windows' bsdtar (System32\tar.exe): on a machine where `tar` resolves to GNU tar (Git Bash),
+  // `-a` writes a plain tar instead of a zip. Relative paths and cwd: bsdtar reads an absolute path such
+  // as D:\... as a host name. Entries are listed by name, not as '.': with '.' the zip holds "./manifest.json",
+  // which the Chrome Web Store dashboard rejects ("manifest.json is missing from the root of the archive").
+  const tarExe = process.platform === 'win32' ? path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'tar.exe') : 'tar';
+  const entries = fs.readdirSync(target);
+  const packed = spawnSync(tarExe, ['-a', '-c', '-f', path.basename(zip), '-C', browser, ...entries], { cwd: dist, stdio: 'inherit' });
   if (packed.status !== 0) {
     console.error(`Failed to pack ${zip}.`);
     process.exit(1);
