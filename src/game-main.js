@@ -22,6 +22,7 @@
       await collectAccount();
       debug('collection flow: collectAccount resolved, saving resources and production factors and refreshing UI');
       saveBodyResources(await barReading);
+      savePlanetOrder();
       saveProductionFactors();
       refreshGameUi();
       updateOpenPanel();
@@ -29,6 +30,7 @@
       debug('collection flow: collectAccount FAILED:', error);
       recordError(error);
       saveBodyResources(await barReading);
+      savePlanetOrder();
       refreshGameUi();
       updateOpenPanel();
     }

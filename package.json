@@ -1,6 +1,6 @@
 {
   "name": "pfg-companion-extension",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "PfG Companion as a Chrome and Firefox extension: collects an OGame account snapshot while the player browses the game and hands it to the ProxyForGame site.",
   "scripts": {

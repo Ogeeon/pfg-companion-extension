@@ -128,6 +128,21 @@ function bodyDetailsFromMenu() {
   return { planets, moons };
 }
 
+/**
+ * The planets' ids in the order the game's planet list shows them: the order the player chose in the game's
+ * options (by emergence, coordinates, name, size or fields, either way round). accountInfo keys its planets by id,
+ * which loses that order. Empty when the page has no planet list.
+ * @returns {number[]}
+ */
+function planetOrderFromMenu() {
+  const order = [];
+  document.querySelectorAll('#planetList .smallplanet').forEach((node) => {
+    const planetId = (node.id || '').match(/^planet-(\d+)$/)?.[1];
+    if (planetId) order.push(Number(planetId));
+  });
+  return order;
+}
+
 /** @param {Record<string, any>} target @param {Record<string, any>} details */
 function mergeBodyDetails(target, details) {
   Object.entries(details).forEach(([id, extra]) => {
@@ -152,6 +167,8 @@ function buildExport(accountInfo, speciesBonuses, uni) {
   const bonusResponse = stripResponse(speciesBonuses);
   if (bonusResponse?.data) result.speciesBonuses = stripDetails(bonusResponse.data);
   else debug('buildExport: speciesBonuses response has no data, keys=', bonusResponse && typeof bonusResponse === 'object' ? Object.keys(bonusResponse).join(',') : typeof bonusResponse);
+  const planetOrder = planetOrderFromMenu();
+  if (planetOrder.length) result.pfgCompanion = { planetOrder };
   result.schemaVersion = 2;
   result.universe = uni;
   result.exportedAt = new Date().toISOString();
@@ -319,6 +336,8 @@ function persistExport(exportData, collectedAt = exportData?.exportedAt, error =
   if (!next.speciesBonuses && existing.speciesBonuses) next.speciesBonuses = existing.speciesBonuses;
   const hasPlanets = (value) => value && typeof value === 'object' && Object.keys(value).length > 0;
   if (!hasPlanets(next.planets) && hasPlanets(existing.planets)) next.planets = existing.planets;
+  const planetOrder = [exportData.pfgCompanion?.planetOrder, existing.pfgCompanion?.planetOrder].find((order) => Array.isArray(order) && order.length);
+  if (planetOrder) next.pfgCompanion.planetOrder = planetOrder;
   next.pfgCompanion.productionBoosters = productionBoosters(next.planets);
   next.pfgCompanion.resources = mergedResources(next, [existing.pfgCompanion?.resources, exportData.pfgCompanion?.resources], collectedAt);
   next.pfgCompanion.status = collectionStatus(next);

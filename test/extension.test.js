@@ -349,6 +349,43 @@ test('logs debug output when localStorage has the debug flag', async () => {
   assert.ok(debugLines.every((args) => String(args[0]).startsWith('[PfG Companion] ')));
 });
 
+// The game's planet list, in the order the player sorted it.
+const planetList = (ids) => `<div id="planetList">${ids.map((id) => `<div class="smallplanet" id="planet-${id}"><a class="planetlink" data-tooltip-title=""></a></div>`).join('')}</div>`;
+
+test('stores the order of the game\'s planet list with the account', async () => {
+  const { entry } = await runPage(gamePage({ body: planetList([5171549, 4431812, 4431813]) }));
+  assert.deepStrictEqual(entry.export.pfgCompanion.planetOrder, [5171549, 4431812, 4431813]);
+});
+
+test('leaves the order out when the page has no planet list', async () => {
+  const { entry } = await runPage(gamePage());
+  assert.ok(!('planetOrder' in entry.export.pfgCompanion));
+});
+
+test('a re-sorted planet list is stored on a later page load without a request, moving exportedAt', async () => {
+  const first = await runPage(gamePage({ body: planetList([4431812, 4431813, 5171549]) }));
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  const later = await runPage(gamePage({ body: planetList([4431813, 5171549, 4431812]) }));
+  assert.strictEqual(later.fetches, 0);
+  assert.deepStrictEqual(later.entry.export.pfgCompanion.planetOrder, [4431813, 5171549, 4431812]);
+  assert.ok(later.entry.export.exportedAt > first.entry.export.exportedAt, 'the site re-imports only a newer export');
+  assert.strictEqual(later.entry.collectedAt, first.entry.collectedAt);
+});
+
+test('the same planet list order writes nothing', async () => {
+  await runPage(gamePage({ body: planetList([4431812, 4431813, 5171549]) }));
+  const again = await runPage(gamePage({ body: planetList([4431812, 4431813, 5171549]) }));
+  assert.strictEqual(again.writes, 0);
+});
+
+test('a page without a planet list keeps the stored order', async () => {
+  await runPage(gamePage({ body: planetList([5171549, 4431812, 4431813]) }));
+  tab = newTab();
+  const { entry, fetches: fetched } = await runPage(gamePage());
+  assert.strictEqual(fetched, 2, 'a new session collects the account again');
+  assert.deepStrictEqual(entry.export.pfgCompanion.planetOrder, [5171549, 4431812, 4431813]);
+});
+
 const storedResources = () => store[SNAPSHOTS_KEY][`en:1:${PLAYER_ID}`].export.pfgCompanion.resources;
 
 test('seeds the resources of every body from accountInfo, dated by the collection', async () => {
@@ -481,7 +518,7 @@ async function exportFrom(button, { minified = true } = {}) {
   store[SNAPSHOTS_KEY][`en:1:${PLAYER_ID}`].export.planets[4431812].baseProduction = { metal: 30 };
   store[SNAPSHOTS_KEY][`en:1:${PLAYER_ID}`].export.planets[4431812].defenses = { 401: 5 };
   store[SNAPSHOTS_KEY]['en:2:1'] = { collectedAt: 'x', export: { playerId: 1, universe: { number: 2, language: 'en', host: 's2-en.ogame.gameforge.com' } } };
-  await runPage(gamePage({ menu: true }), {
+  await runPage(gamePage({ menu: true, body: planetList([5171549, 4431812, 4431813]) }), {
     setup(w) {
       w.navigator.clipboard = { writeText: async (text) => { copied = text; } };
       w.URL.createObjectURL = (blob) => { saved = blob; return 'blob:x'; };
@@ -512,6 +549,7 @@ test('Copy puts the trimmed minified export of the current universe on the clipb
   assert.ok(data.pfgCompanion.productionBoosters);
   assert.ok(!('resources' in data.pfgCompanion), 'the resource readings are stripped');
   assert.ok(data.pfgCompanion.status, 'the rest of pfgCompanion is kept');
+  assert.deepStrictEqual(data.pfgCompanion.planetOrder, [5171549, 4431812, 4431813], 'the planet order is kept');
 });
 
 test('with Minified unchecked, Copy exports everything stored', async () => {

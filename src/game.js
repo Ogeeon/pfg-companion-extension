@@ -239,6 +239,26 @@ function saveBodyResources(read) {
   persistExport(next, entry.collectedAt, entry.error);
 }
 
+/**
+ * Stores the planet list's order when it differs from the stored one: the player re-sorted the list in the game's
+ * options, which needs no new account request. Moves `exportedAt`, as a production-factor save does, because the
+ * site re-imports an export only when it is newer.
+ */
+function savePlanetOrder() {
+  const order = planetOrderFromMenu();
+  if (!order.length) return;
+  const entry = activeEntry();
+  if (!entry?.export) return;
+  const stored = entry.export.pfgCompanion?.planetOrder;
+  if (Array.isArray(stored) && stored.length === order.length && stored.every((id, i) => id === order[i])) return;
+  debug('savePlanetOrder: planet list order changed to', order);
+  const next = structuredClone(entry.export);
+  next.exportedAt = new Date().toISOString();
+  next.pfgCompanion ??= {};
+  next.pfgCompanion.planetOrder = order;
+  persistExport(next, entry.collectedAt, entry.error);
+}
+
 /** @param {unknown} error */
 function recordError(error) {
   debug('recordError:', error);

@@ -6,7 +6,7 @@ PfG Companion is a browser extension that collects data from your OGame account 
 
 ## What is collected
 
-While you are logged in to OGame and browse its game pages, the extension reads account data that OGame provides to your browser: your player ID, your universe, your planets and moons (names, coordinates, resources, fields, temperatures), production settings, active production boosters and species bonuses. It does not read passwords, cookies or messages, and it does not keep a record of your browsing history.
+While you are logged in to OGame and browse its game pages, the extension reads account data that OGame provides to your browser: your player ID, your universe, your planets and moons (names, coordinates, resources, fields, temperatures) and the order of your planet list, production settings, active production boosters and species bonuses. It does not read passwords, cookies or messages, and it does not keep a record of your browsing history.
 
 ## Where it is stored
 

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "PfG Companion",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Collect OGame account data while you play and make it available to ProxyForGame.",
   "minimum_chrome_version": "111",
   "icons": {
