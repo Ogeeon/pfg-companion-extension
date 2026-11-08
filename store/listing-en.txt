@@ -9,7 +9,7 @@ FULL DESCRIPTION (Chrome Web Store, max 16000 characters)
 PfG Companion collects your OGame account data while you play and makes it available to ProxyForGame (proxyforgame.com), so you do not have to copy anything by hand.
 
 HOW IT WORKS
-- Play OGame as usual. While you browse game pages, the extension reads your account information, your planets and moons (names, coordinates, resources, fields, temperatures), your production settings and active production boosters.
+- Play OGame as usual. While you browse game pages, the extension reads your account information, your planets and moons (names, coordinates, resources, fields, temperatures), the order of your planet list, your production settings and active production boosters.
 - Open the PfG Companion entry in the OGame menu to see what has been collected and when. The panel has Refresh and Clear data buttons.
 - Open proxyforgame.com in the same browser. It picks up the stored data automatically.
 - Production percentages are read from the Resource Settings page. Open it on each planet whose percentages you want included.
