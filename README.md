@@ -1,5 +1,7 @@
 # PfG Companion Extension
 
+> **This repository is no longer maintained.** The extension and the userscript are now built from one source: https://github.com/Ogeeon/pfg-companion. Report issues there.
+
 PfG Companion as a browser extension: Chrome and Firefox, one Manifest V3 codebase. It implements the same functionality as the [PfG Companion userscript](https://proxyforgame.com/companion/pfg-companion.user.js) — collects an OGame account snapshot while the player browses the game, keeps it in extension storage, and hands it to the ProxyForGame site — for players who do not use a userscript manager.
 
 Behaviour, stored data and the site hand-off contract are defined by the userscript repository and must not drift from it. If both the userscript and the extension are installed, whoever starts first marks the page (`data-pfg-companion` on `<html>`) and the other stands down entirely, so the account is never requested twice.
